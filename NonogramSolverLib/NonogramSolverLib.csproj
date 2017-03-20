@@ -40,10 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cell.cs" />
-    <Compile Include="CellLine.cs" />
-    <Compile Include="Nonogram.cs" />
+    <Compile Include="NonogramLib\Cell.cs" />
+    <Compile Include="NonogramLib\CellLine.cs" />
+    <Compile Include="INonogramTechnique.cs" />
+    <Compile Include="NonogramLib\Nonogram.cs" />
+    <Compile Include="NonogramSolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Techniques\OverlapTechnique.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

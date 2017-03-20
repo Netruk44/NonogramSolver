@@ -12,6 +12,7 @@ namespace NonogramSolverLib
     {
         public int Length { get; }
         private Cell[] cells;
+        public List<int> Hints { get; }
 
         public Cell this[int i]
         {
@@ -19,6 +20,8 @@ namespace NonogramSolverLib
             {
                 return cells[i];
             }
+
+            // Read only. If you want to modify a cell, use line[0].State instead.
         }
 
         public int UnknownCount
@@ -49,14 +52,20 @@ namespace NonogramSolverLib
         {
             get
             {
-                return cells.Any(x => x.State == Cell.CellState.Unknown);
+                return !cells.Any(x => x.State == Cell.CellState.Unknown);
             }
         }
 
-        public CellLine(IEnumerable<Cell> cells)
+        public CellLine(IEnumerable<Cell> cells, List<int> hints)
         {
             this.cells = cells.ToArray();
             Length = this.cells.Length;
+            Hints = hints;
+        }
+
+        public CellLine Clone()
+        {
+            return new CellLine(cells, Hints);
         }
 
         public IEnumerator<Cell> GetEnumerator()

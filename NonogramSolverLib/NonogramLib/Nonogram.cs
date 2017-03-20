@@ -13,6 +13,9 @@ namespace NonogramSolverLib
         public int width { get; }
         public int height { get; }
 
+        public List<int>[] HorizontalHints;
+        public List<int>[] VerticalHints;
+
         [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification = "An out of range exception is expected when accessing an array-like object")]
         public Cell this[int x, int y]
         {
@@ -31,6 +34,10 @@ namespace NonogramSolverLib
         }
 
         public Nonogram(int width, int height)
+            : this(width, height, CreateEmptyHintList(width), CreateEmptyHintList(height))
+        { }
+
+        public Nonogram(int width, int height, List<int>[] horizontalHints, List<int>[] verticalHints)
         {
             this.width = width;
             this.height = height;
@@ -45,16 +52,59 @@ namespace NonogramSolverLib
                     cells[y][x] = new Cell();
                 }
             }
+
+            HorizontalHints = horizontalHints;
+            VerticalHints = verticalHints;
         }
 
         public CellLine Row(int index)
         {
-            return new CellLine(getRow(index));
+            return new CellLine(getRow(index), VerticalHints[index]);
         }
 
         public CellLine Column(int index)
         {
-            return new CellLine(getColumn(index));
+            return new CellLine(getColumn(index), HorizontalHints[index]);
+        }
+
+        public bool Validate()
+        {
+            // Validate there are enough hints for all rows/columns
+            if (HorizontalHints.Length != width)
+            {
+                return false;
+            }
+            if (VerticalHints.Length == height)
+            {
+                return false;
+            }
+
+            // Validate that the hints themselves add up
+            // Example:
+            // width = 5
+            // hint: {2, 2}
+            // Solution is possible: XX_XX - width of 5
+            //
+            // width = 5
+            // hint: {2, 1, 2}
+            // Solution is not possible: XX_X_XX - width of 7
+            foreach (var hint in HorizontalHints)
+            {
+                if (hint.Sum() + hint.Count - 1 > width)
+                {
+                    return false;
+                }
+            }
+
+            foreach (var hint in VerticalHints)
+            {
+                if (hint.Sum() + hint.Count - 1 > height)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private IEnumerable<Cell> getRow(int index)
@@ -81,6 +131,18 @@ namespace NonogramSolverLib
             {
                 yield return cells[y][index];
             }
+        }
+
+        private static List<int>[] CreateEmptyHintList(int length)
+        {
+            var ret = new List<int>[length];
+
+            for (int i = 0; i < length; i++)
+            {
+                ret[i] = new List<int>();
+            }
+
+            return ret;
         }
     }
 }
