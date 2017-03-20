@@ -45,6 +45,14 @@ namespace NonogramSolverLib
             }
         }
 
+        public bool isComplete
+        {
+            get
+            {
+                return cells.Any(x => x.State == Cell.CellState.Unknown);
+            }
+        }
+
         public CellLine(IEnumerable<Cell> cells)
         {
             this.cells = cells.ToArray();

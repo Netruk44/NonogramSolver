@@ -82,5 +82,73 @@ namespace NonogramSolverTests
 
             Assert.AreEqual(width, unknownCount + filledCount + blankCount);
         }
+
+        [TestMethod]
+        public void CellLineIsCompleteIsFalseWhenAllUnknown()
+        {
+            Nonogram n = new Nonogram(5, 5);
+
+            Assert.IsFalse(n.Row(0).isComplete);
+        }
+
+        [TestMethod]
+        public void CellLineIsCompleteIsTrueWhenAllFilled()
+        {
+            Nonogram n = new Nonogram(5, 5);
+            CellLine l = n.Row(0);
+
+            foreach (var cell in l)
+            {
+                cell.State = Cell.CellState.Filled;
+            }
+
+            Assert.IsTrue(n.Row(0).isComplete);
+        }
+
+        [TestMethod]
+        public void CellLineIsCompleteIsTrueWhenAllBlank()
+        {
+            Nonogram n = new Nonogram(5, 5);
+            CellLine l = n.Row(0);
+
+            foreach (var cell in l)
+            {
+                cell.State = Cell.CellState.Blank;
+            }
+
+            Assert.IsTrue(n.Row(0).isComplete);
+        }
+
+        [TestMethod]
+        public void CellLineIsCompleteIsTrueWhenAllNotUnknown()
+        {
+            Nonogram n = new Nonogram(5, 5);
+            CellLine l = n.Row(0);
+            bool setToFilled = false;
+
+            foreach (var cell in l)
+            {
+                cell.State = setToFilled ? Cell.CellState.Filled : Cell.CellState.Blank;
+                setToFilled = !setToFilled;
+            }
+
+            Assert.IsTrue(n.Row(0).isComplete);
+        }
+
+        [TestMethod]
+        public void CellLineIsCompleteIsFalseWithOneUnknown()
+        {
+            Nonogram n = new Nonogram(5, 5);
+            CellLine l = n.Row(0);
+            bool setToUnknown = false;
+
+            foreach (var cell in l)
+            {
+                cell.State = setToUnknown ? Cell.CellState.Unknown : Cell.CellState.Filled;
+                setToUnknown = true;
+            }
+
+            Assert.IsFalse(n.Row(0).isComplete);
+        }
     }
 }
