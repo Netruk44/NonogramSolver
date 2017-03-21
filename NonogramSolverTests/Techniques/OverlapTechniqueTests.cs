@@ -378,5 +378,73 @@ namespace NonogramSolverTests
                 Assert.AreEqual(expected[i], line[i].State);
             }
         }
+
+        [TestMethod]
+        public void OverlapTechniqueFindsSolutionWhenGivenPartialInformation_5_3_first()
+        {
+            // Testing: Finds information when a partial solution is in place
+            // Expected Results:
+            // Width: 5
+            // Hint: 3
+            // Pre-given information: X????
+            // Solution: XXX__
+
+            const int width = 5;
+            var n = new Nonogram(width, 1);
+            var line = n.Row(0);
+            line.Hints.AddRange(new int[] { 3 });
+
+            line[0].State = Cell.CellState.Filled;
+
+            Cell.CellState[] expected = new Cell.CellState[width] {
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Blank
+            };
+
+            var t = new OverlapTechnique();
+            t.Apply(line);
+
+            for (int i = 0; i < width; ++i)
+            {
+                Assert.AreEqual(expected[i], line[i].State);
+            }
+        }
+
+        [TestMethod]
+        public void OverlapTechniqueFindsSolutionWhenGivenPartialInformation_5_3_last()
+        {
+            // Testing: Finds information when a partial solution is in place
+            // Expected Results:
+            // Width: 5
+            // Hint: 3
+            // Pre-given information: ????X
+            // Solution: __XXX
+
+            const int width = 5;
+            var n = new Nonogram(width, 1);
+            var line = n.Row(0);
+            line.Hints.AddRange(new int[] { 3 });
+
+            line[0].State = Cell.CellState.Filled;
+
+            Cell.CellState[] expected = new Cell.CellState[width] {
+                Cell.CellState.Blank,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled
+            };
+
+            var t = new OverlapTechnique();
+            t.Apply(line);
+
+            for (int i = 0; i < width; ++i)
+            {
+                Assert.AreEqual(expected[i], line[i].State);
+            }
+        }
     }
 }
