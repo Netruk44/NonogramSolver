@@ -10,7 +10,7 @@ namespace NonogramSolverLib.Techniques
     {
         // Determines if any particular group of cells must overlap with itself
         // for both the min and max case
-        public void Apply(CellLine line)
+        /*public void Apply(CellLine line)
         {
             int length = line.Length;
             int minimumWidth = line.Hints.Sum() + line.Hints.Count - 1;
@@ -42,6 +42,30 @@ namespace NonogramSolverLib.Techniques
                 }
 
                 offset += numberKnown + 1;
+            }
+        }*/
+
+        public void Apply(CellLine line)
+        {
+            var min = line.Min();
+            var max = line.Max();
+
+            if (min == null || max == null)
+            {
+                // Min or Max was given conflicting information and cannot be filled.
+                // Can't do anything, so return now.
+                return;
+            }
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                var minCell = min[i];
+                var maxCell = max[i];
+
+                if (minCell == maxCell)
+                {
+                    line[i].State = minCell.State;
+                }
             }
         }
     }

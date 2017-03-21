@@ -275,7 +275,7 @@ namespace NonogramSolverTests
         [TestMethod]
         public void OverlapTechniqueGivesNoInformationWhenHintGivenIncompleteInformation_5_1_1()
         {
-            // Returns no information when given hints that don't overlap
+            // Testing: Returns no information when given hints that don't overlap
             // Expected Results:
             // Width: 5
             // Hint: 1, 1
@@ -297,6 +297,86 @@ namespace NonogramSolverTests
 
             // All are unknown
             Assert.IsTrue(line.All(x => x.State == Cell.CellState.Unknown));
+        }
+
+        [TestMethod]
+        public void OverlapTechniqueGivesInformationWhenHintGivenIncompleteInformationAndPartialSolution_10_1_1_1_1_1()
+        {
+            // Testing: Finds information when a partial solution is in place
+            // Expected Results:
+            // Width: 10
+            // Hint: 1, 1, 1, 1, 1
+            // Pre-given information: ??????? ??
+            //
+            // Min/Max:
+            // ??????? ??
+            // X X X X X 
+            // X X X X  X
+            //
+            // Overlap:
+            // X X X X ??
+
+            const int width = 10;
+            var n = new Nonogram(width, 1);
+            var line = n.Row(0);
+            line.Hints.AddRange(new int[] { 1, 1, 1, 1, 1 });
+
+            line[7].State = Cell.CellState.Blank;
+
+            Cell.CellState[] expected = new Cell.CellState[width] {
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown
+            };
+
+            var t = new OverlapTechnique();
+            t.Apply(line);
+
+            for (int i = 0; i < width; ++i)
+            {
+                Assert.AreEqual(expected[i], line[i].State);
+            }
+        }
+
+        [TestMethod]
+        public void OverlapTechniqueDoesNothingWhenGivenConflictingInformation()
+        {
+            // Testing: Finds information when a partial solution is in place
+            // Expected Results:
+            // Width: 5
+            // Hint: 3
+            // Pre-given information: X???X
+
+            const int width = 5;
+            var n = new Nonogram(width, 1);
+            var line = n.Row(0);
+            line.Hints.AddRange(new int[] { 3 });
+
+            line[0].State = Cell.CellState.Filled;
+            line[4].State = Cell.CellState.Filled;
+
+            Cell.CellState[] expected = new Cell.CellState[width] {
+                Cell.CellState.Filled,
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+                Cell.CellState.Filled
+            };
+
+            var t = new OverlapTechnique();
+            t.Apply(line);
+
+            for (int i = 0; i < width; ++i)
+            {
+                Assert.AreEqual(expected[i], line[i].State);
+            }
         }
     }
 }
