@@ -428,7 +428,7 @@ namespace NonogramSolverTests
             var line = n.Row(0);
             line.Hints.AddRange(new int[] { 3 });
 
-            line[0].State = Cell.CellState.Filled;
+            line[4].State = Cell.CellState.Filled;
 
             Cell.CellState[] expected = new Cell.CellState[width] {
                 Cell.CellState.Blank,

@@ -103,7 +103,7 @@ namespace NonogramSolverLib
 
             for (int i = startingPosition; i < startingPosition + length; i++)
             {
-                if (cells[i].State != Cell.CellState.Unknown)
+                if (cells[i].State != Cell.CellState.Unknown && cells[i].State != desiredState)
                 {
                     ret = false;
                 }
@@ -120,7 +120,7 @@ namespace NonogramSolverLib
 
             for (int i = startingPosition; i < startingPosition + length; i++)
             {
-                if (cells[i].State != Cell.CellState.Unknown)
+                if (cells[i].State != Cell.CellState.Unknown && cells[i].State != desiredState)
                 {
                     ret = false;
                 }
@@ -183,15 +183,13 @@ namespace NonogramSolverLib
                 currentPosition += length + 1;
             }
 
-            // Fill the rest in with blanks
-            ret.Fill(currentPosition, ret.Length - currentPosition, Cell.CellState.Blank);
-
-            // Number the blank cells
+            // Fill and number the rest as blank cells
             int currentOpening = 0;
             foreach (var cell in ret)
             {
-                if (cell.State == Cell.CellState.Blank)
+                if (cell.State == Cell.CellState.Unknown || cell.State == Cell.CellState.Blank)
                 {
+                    cell.State = Cell.CellState.Blank;
                     cell.Flag = currentOpening++;
                 }
             }
@@ -237,22 +235,174 @@ namespace NonogramSolverLib
 
                 currentPosition += length + 1;
             }
-
-            // Fill the rest in with blanks
-            ret.Fill(currentPosition, ret.Length - currentPosition, Cell.CellState.Blank);
+            
             ret.Reverse();
-
-            // Number the blank cells
+            
+            // Fill and number the rest as blank cells
             int currentOpening = 0;
             foreach (var cell in ret)
             {
-                if (cell.State == Cell.CellState.Blank)
+                if (cell.State == Cell.CellState.Unknown || cell.State == Cell.CellState.Blank)
                 {
+                    cell.State = Cell.CellState.Blank;
                     cell.Flag = currentOpening++;
                 }
             }
 
             return ret;
+        }
+
+        public int DistinctGroups()
+        {
+            int distinctGroups = 0;
+            bool currentlyInGroup = false;
+
+            for (int i = 0; i < cells.Length; i++)
+            {
+                if (currentlyInGroup)
+                {
+                    if (cells[i].State == Cell.CellState.Blank)
+                    {
+                        currentlyInGroup = false;
+                    }
+                }
+                else
+                {
+                    if (cells[i].State == Cell.CellState.Filled)
+                    {
+                        currentlyInGroup = true;
+                        ++distinctGroups;
+                    }
+                }
+            }
+
+            return distinctGroups;
+        }
+
+        public IEnumerable<CellLine> Possibilities()
+        {
+            for (int i = 0; i < cells.Length; i++)
+            {
+                if (cells[i].State == Cell.CellState.Unknown)
+                {
+                    var unknownIsFilled = DeepClone();
+                    var unknownIsBlank = DeepClone();
+
+                    unknownIsFilled[i].State = Cell.CellState.Filled;
+                    unknownIsBlank[i].State = Cell.CellState.Blank;
+
+                    foreach (var line in unknownIsFilled.Possibilities())
+                    {
+                        yield return line;
+                    }
+
+                    foreach (var line in unknownIsBlank.Possibilities())
+                    {
+                        yield return line;
+                    }
+
+                    yield break;
+                }
+            }
+
+            yield return this;
+        }
+
+        public bool IsValid()
+        {
+            // TODO: Make this non-brute force, if possible.
+            return Possibilities().Any(x => x.Internal_IsValid());
+        }
+
+        bool Internal_IsValid()
+        {
+            // Validate the hints
+            int minimumWidth = Hints.Sum() + Hints.Count - 1;
+            if (minimumWidth > cells.Length)
+            {
+                return false;
+            }
+
+            // Validate the number of groups
+            int numGroups = DistinctGroups();
+            if (numGroups != Hints.Count)
+            {
+                return false;
+            }
+
+            // Validate the largest group
+            int largestGroupPossible;
+            int currentGroupSize = 0;
+            bool inGroup = false;
+
+            if (Hints.Count != 0)
+            {
+                largestGroupPossible = Hints.Max();
+            }
+            else
+            {
+                largestGroupPossible = 0;
+            }
+            
+            for(int i = 0; i < cells.Length; i++)
+            {
+                if (inGroup)
+                {
+                    if (cells[i].State == Cell.CellState.Blank)
+                    {
+                        inGroup = false;
+                        continue;
+                    }
+                    /*else if (cells[i].State == Cell.CellState.Unknown)
+                    {
+                        // Could be blank or filled.
+                        // Try both.
+
+                        var unknownIsFilled = DeepClone();
+                        var unknownIsBlank = DeepClone();
+
+                        unknownIsFilled[i].State = Cell.CellState.Filled;
+                        unknownIsBlank[i].State = Cell.CellState.Blank;
+
+                        // Less than and not equal to to make sure we aren't going over group size limit
+                        if (currentGroupSize < largestGroupPossible && unknownIsFilled.IsValid())
+                        {
+                            ++currentGroupSize;
+                            continue;
+                        }
+                        if (unknownIsBlank.IsValid())
+                        {
+                            inGroup = false;
+                            continue;
+                        }
+
+                        // Cell can not be either filled nor blank
+                        return false;
+                    }*/
+
+                    ++currentGroupSize;
+
+                    if (currentGroupSize > largestGroupPossible)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    if (cells[i].State == Cell.CellState.Filled)
+                    {
+                        inGroup = true;
+                        currentGroupSize = 1;
+                    }
+                }
+            }
+
+            if (currentGroupSize > largestGroupPossible)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -287,6 +437,14 @@ namespace NonogramSolverLib
             return true;
         }
 
+        private bool IsValidPosition(int position, int length, Cell.CellState desiredState)
+        {
+            var temp = DeepClone();
+
+            temp.Fill(position, length, desiredState);
+            return temp.IsValid();
+        }
+
         /// <summary>
         /// Finds the next index that will fit a line of cells with the given cell state
         /// in this CellLine.
@@ -304,7 +462,7 @@ namespace NonogramSolverLib
 
             for (int i = startingPosition; i <= Length - length; i++)
             {
-                if (IsClear(i, length, desiredState))
+                if (IsClear(i, length, desiredState) && IsValidPosition(i, length, desiredState))
                 {
                     return i;
                 }

@@ -927,5 +927,191 @@ namespace NonogramSolverTests
                 Assert.AreEqual(expectedFlags[i], max[i].Flag);
             }
         }
+
+        [TestMethod]
+        public void DistinctGroupsReturnsZeroWithAllUnknowns()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+
+            Assert.AreEqual(0, l.DistinctGroups());
+        }
+
+        [TestMethod]
+        public void DistinctGroupsReturnsZeroWithAllBlank()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(Cell.CellState.Blank);
+
+            Assert.AreEqual(0, l.DistinctGroups());
+        }
+
+        [TestMethod]
+        public void DistinctGroupsReturnsOneWithAllFilled()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(Cell.CellState.Filled);
+
+            Assert.AreEqual(1, l.DistinctGroups());
+        }
+
+        [TestMethod]
+        public void DistinctGroupsReturnsActualNumberOfGroupsWithTwoGroupsOfTwo()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(Cell.CellState.Filled);
+            l[2].State = Cell.CellState.Blank;
+
+            Assert.AreEqual(2, l.DistinctGroups());
+        }
+
+        [TestMethod]
+        public void DistinctGroupsReturnsActualNumberOfGroupsWithThreeGroupsOfOne()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l[0].State = l[2].State = l[4].State = Cell.CellState.Filled;
+            l[1].State = l[3].State = Cell.CellState.Blank;
+
+            Assert.AreEqual(3, l.DistinctGroups());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsTrueWhenAllUnknown()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+
+            Assert.AreEqual(true, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsTrueWhenHintMatchesContents_Hint5_Contents5()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(Cell.CellState.Filled);
+            l.Hints.Add(5);
+
+            Assert.AreEqual(true, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsTrueWhenHintMatchesContents_Hint0_Contents0()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(Cell.CellState.Blank);
+
+            Assert.AreEqual(true, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsTrueWhenHintMatchesContents_Hint111_Contents111()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l[0].State = l[2].State = l[4].State = Cell.CellState.Filled;
+            l[1].State = l[3].State = Cell.CellState.Blank;
+            l.Hints.AddRange(new int[] { 1, 1, 1 });
+
+            Assert.AreEqual(true, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsFalseWhenTooManyGroups_Hint11_Contents111()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l[0].State = l[2].State = l[4].State = Cell.CellState.Filled;
+            l[1].State = l[3].State = Cell.CellState.Blank;
+            l.Hints.AddRange(new int[] { 1, 1 });
+
+            Assert.AreEqual(false, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsTrueWhenNotEnoughGroups_Hint111_Contents11()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l[0].State = l[2].State = Cell.CellState.Filled;
+            l[1].State = l[3].State = Cell.CellState.Blank;
+            l.Hints.AddRange(new int[] { 1, 1, 1 });
+
+            Assert.AreEqual(true, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsFalseWhenGroupIsTooLarge_Hint3_Contents4_left()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(0, 4, Cell.CellState.Filled);
+            l[4].State = Cell.CellState.Blank;
+            l.Hints.AddRange(new int[] { 3 });
+
+            Assert.AreEqual(false, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsFalseWhenGroupIsTooLarge_Hint3_Contents4_right()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l[0].State = Cell.CellState.Blank;
+            l.Fill(1, 4, Cell.CellState.Filled);
+            l.Hints.AddRange(new int[] { 3 });
+
+            Assert.AreEqual(false, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsFalseWhenHintIsNotPossible_Hint32()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Hints.AddRange(new int[] { 3, 2 });
+
+            Assert.AreEqual(false, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsFalseWhenNoPossibleSolutionsExist()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(0, 3, Cell.CellState.Filled);
+            l[4].State = Cell.CellState.Filled;
+            l.Hints.AddRange(new int[] { 3 });
+
+            Assert.AreEqual(false, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsTrueWhenPossibleSolutionsExist()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(0, 3, Cell.CellState.Blank);
+            l[4].State = Cell.CellState.Blank;
+            l.Hints.AddRange(new int[] { 1 });
+
+            Assert.AreEqual(true, l.IsValid());
+        }
+
+        [TestMethod]
+        public void IsValidReturnsFalseWhenHintsExistButAllBlank()
+        {
+            Nonogram n = new Nonogram(5, 1);
+            CellLine l = n.Row(0);
+            l.Fill(Cell.CellState.Blank);
+            l.Hints.AddRange(new int[] { 1 });
+
+            Assert.AreEqual(false, l.IsValid());
+        }
     }
 }
