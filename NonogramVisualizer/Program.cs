@@ -1,6 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ namespace NonogramVisualizer
         {
             var n = ReadNonogramFromFile(args[0]);
             var s = new NonogramSolver();
+            var stepTime = new Stopwatch();
+            var totalTime = new Stopwatch();
 
             Console.WriteLine("Starting position:");
             PrintNonogram(n);
@@ -21,18 +24,24 @@ namespace NonogramVisualizer
             Console.WriteLine();
 
             int currentStep = 0;
+            totalTime.Start();
+            stepTime.Start();
 
             while (s.SolveStep(n))
             {
+                stepTime.Stop();
                 ++currentStep;
-                Console.WriteLine($"Step {currentStep}:");
+                Console.WriteLine($"Step {currentStep} (took {stepTime.Elapsed}):");
                 PrintNonogram(n);
                 Console.WriteLine();
                 Console.WriteLine();
+                stepTime.Restart();
             }
 
+            totalTime.Stop();
             Console.WriteLine("Can not make any more solve steps.");
             Console.WriteLine($"Solved: {n.IsComplete()}");
+            Console.WriteLine($"Took: {totalTime.Elapsed}");
         }
 
         static Nonogram ReadNonogramFromFile(string filename)
@@ -47,7 +56,7 @@ namespace NonogramVisualizer
             for (int i = 0; i < horizontalHints.Length; i++)
             {
                 horizontalHints[i] = new List<int>(
-                    strHorizontalHints[i].Split(' ')
+                    strHorizontalHints[i].Trim().Split(' ')
                         .Select(singleHint => int.Parse(singleHint))
                 );
             }
@@ -55,7 +64,7 @@ namespace NonogramVisualizer
             for (int i = 0; i < verticalHints.Length; i++)
             {
                 verticalHints[i] = new List<int>(
-                    strVerticalHints[i].Split(' ')
+                    strVerticalHints[i].Trim().Split(' ')
                         .Select(singleHint => int.Parse(singleHint))
                 );
             }

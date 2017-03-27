@@ -414,6 +414,19 @@ namespace NonogramSolverLib
                 return false;
             }
 
+            // Validate the number of filled in cells
+            if (FilledCount > Hints.Sum())
+            {
+                return false;
+            }
+
+            // Validate there are enough unknown cells to account
+            // for the rest of the hints
+            if (UnknownCount < Hints.Sum() - FilledCount)
+            {
+                return false;
+            }
+
             // Validate the largest group
             int largestGroupPossible;
             int currentGroupSize = 0;
