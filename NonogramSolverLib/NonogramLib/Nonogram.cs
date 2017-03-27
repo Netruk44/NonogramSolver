@@ -107,6 +107,22 @@ namespace NonogramSolverLib
             return true;
         }
 
+        public bool IsComplete()
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (cells[y][x].State == Cell.CellState.Unknown)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         private IEnumerable<Cell> getRow(int index)
         {
             if (index > height)

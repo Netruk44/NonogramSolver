@@ -7,26 +7,49 @@ using System.Threading.Tasks;
 
 namespace NonogramSolverLib
 {
-    class NonogramSolver
+    public class NonogramSolver
     {
         private List<INonogramTechnique> techniques;
 
         public NonogramSolver()
         {
-            this.techniques = GetTechniques().ToList();
+            techniques = new List<INonogramTechnique>();
+
+            techniques.Add(new Techniques.OverlapTechnique());
         }
 
-        private IEnumerable<INonogramTechnique> GetTechniques()
+        public bool Solve(Nonogram n)
         {
-            // TODO: Determine that this actually works.
-            // TODO: Test that this actually works?
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            while (SolveStep(n)) ;
+
+            return n.IsComplete();
+        }
+
+        public bool SolveStep(Nonogram n)
+        {
+            bool madeChanges = false;
+
+            for (int y = 0; y < n.height; y++)
             {
-                if (type.GetCustomAttributes(typeof(NonogramTechniqueAttribute), true).Length > 0)
+                var row = n.Row(y);
+
+                foreach (var t in techniques)
                 {
-                    yield return (INonogramTechnique)Activator.CreateInstance(type);
+                    madeChanges |= t.Apply(row);
                 }
             }
+
+            for (int x = 0; x < n.width; x++)
+            {
+                var col = n.Column(x);
+
+                foreach (var t in techniques)
+                {
+                    madeChanges |= t.Apply(col);
+                }
+            }
+
+            return madeChanges;
         }
     }
 }

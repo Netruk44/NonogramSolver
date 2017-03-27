@@ -291,12 +291,12 @@ namespace NonogramSolverLib
                     unknownIsFilled[i].State = Cell.CellState.Filled;
                     unknownIsBlank[i].State = Cell.CellState.Blank;
 
-                    foreach (var line in unknownIsFilled.Possibilities())
+                    foreach (var line in unknownIsBlank.Possibilities())
                     {
                         yield return line;
                     }
 
-                    foreach (var line in unknownIsBlank.Possibilities())
+                    foreach (var line in unknownIsFilled.Possibilities())
                     {
                         yield return line;
                     }
@@ -310,12 +310,96 @@ namespace NonogramSolverLib
 
         public bool IsValid()
         {
-            // TODO: Make this non-brute force, if possible.
-            return Possibilities().Any(x => x.Internal_IsValid());
+            // Validate the hints
+            int minimumWidth = Hints.Sum() + Hints.Count - 1;
+            if (minimumWidth > cells.Length)
+            {
+                return false;
+            }
+
+            // Validate the number of groups
+            int numGroups = DistinctGroups();
+            if (numGroups > Hints.Count)
+            {
+                return false;
+            }
+
+            // Validate the number of filled in cells
+            if (FilledCount > Hints.Sum())
+            {
+                return false;
+            }
+
+            // Validate there are enough unknown cells to account
+            // for the rest of the hints
+            if (UnknownCount < Hints.Sum() - FilledCount)
+            {
+                return false;
+            }
+
+            // Validate the largest group
+            int largestGroupPossible;
+            int currentGroupSize = 0;
+            bool inGroup = false;
+
+            if (Hints.Count != 0)
+            {
+                largestGroupPossible = Hints.Max();
+            }
+            else
+            {
+                largestGroupPossible = 0;
+            }
+
+            for (int i = 0; i < cells.Length; i++)
+            {
+                if (inGroup)
+                {
+                    if (cells[i].State != Cell.CellState.Filled)
+                    {
+                        inGroup = false;
+                        continue;
+                    }
+
+                    ++currentGroupSize;
+
+                    if (currentGroupSize > largestGroupPossible)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    if (cells[i].State == Cell.CellState.Filled)
+                    {
+                        inGroup = true;
+                        currentGroupSize = 1;
+                    }
+                }
+            }
+
+            if (currentGroupSize > largestGroupPossible)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        bool Internal_IsValid()
+        public bool IsValid_BruteForce()
         {
+            // TODO: Make this non-brute force, if possible.
+            // O(2^Length)
+            // O(😱)
+            return Possibilities()
+                .AsParallel()
+                .Any(x => x.Recursive_IsValid());
+        }
+
+        bool Recursive_IsValid()
+        {
+            // Assumes no cell is unknown.
+
             // Validate the hints
             int minimumWidth = Hints.Sum() + Hints.Count - 1;
             if (minimumWidth > cells.Length)
@@ -353,32 +437,6 @@ namespace NonogramSolverLib
                         inGroup = false;
                         continue;
                     }
-                    /*else if (cells[i].State == Cell.CellState.Unknown)
-                    {
-                        // Could be blank or filled.
-                        // Try both.
-
-                        var unknownIsFilled = DeepClone();
-                        var unknownIsBlank = DeepClone();
-
-                        unknownIsFilled[i].State = Cell.CellState.Filled;
-                        unknownIsBlank[i].State = Cell.CellState.Blank;
-
-                        // Less than and not equal to to make sure we aren't going over group size limit
-                        if (currentGroupSize < largestGroupPossible && unknownIsFilled.IsValid())
-                        {
-                            ++currentGroupSize;
-                            continue;
-                        }
-                        if (unknownIsBlank.IsValid())
-                        {
-                            inGroup = false;
-                            continue;
-                        }
-
-                        // Cell can not be either filled nor blank
-                        return false;
-                    }*/
 
                     ++currentGroupSize;
 

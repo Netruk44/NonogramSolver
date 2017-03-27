@@ -45,7 +45,7 @@ namespace NonogramSolverLib.Techniques
             }
         }*/
 
-        public void Apply(CellLine line)
+        public bool Apply(CellLine line)
         {
             var min = line.Min();
             var max = line.Max();
@@ -54,8 +54,10 @@ namespace NonogramSolverLib.Techniques
             {
                 // Min or Max was given conflicting information and cannot be filled.
                 // Can't do anything, so return now.
-                return;
+                return false;
             }
+
+            bool madeChanges = false;
 
             for (int i = 0; i < line.Length; i++)
             {
@@ -64,9 +66,16 @@ namespace NonogramSolverLib.Techniques
 
                 if (minCell == maxCell)
                 {
+                    if (line[i].State != minCell.State)
+                    {
+                        madeChanges = true;
+                    }
+
                     line[i].State = minCell.State;
                 }
             }
+
+            return madeChanges;
         }
     }
 }

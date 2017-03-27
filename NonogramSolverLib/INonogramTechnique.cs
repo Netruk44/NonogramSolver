@@ -18,6 +18,7 @@ namespace NonogramSolverLib
         /// Apply the technique to the given cell line.
         /// </summary>
         /// <param name="line">The line to apply the technique to.</param>
-        void Apply(CellLine line);
+        /// <returns>Whether or not the technique made any changes</returns>
+        bool Apply(CellLine line);
     }
 }
