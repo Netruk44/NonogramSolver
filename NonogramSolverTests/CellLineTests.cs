@@ -695,6 +695,90 @@ namespace NonogramSolverTests
         }
 
         [TestMethod]
+        public void CellLineMinFunctionsWithTrickyKnownCells()
+        {
+            // Test pitfall of greedy algorithm.
+            // The first spot that the 3 hint can fit into leads to an invalid state.
+            //
+            // Hint: 2 3 4 2
+            // Given: ???????XX???XXXX????
+            //        ^^ ^^^
+            // Greedy fills these 5 cells incorrectly.
+            Nonogram n = new Nonogram(20, 1);
+            CellLine line = n.Row(0);
+            line.Hints.AddRange(new int[] { 2, 3, 4, 2 });
+            line[7].State =
+                line[8].State =
+                line[12].State =
+                line[13].State =
+                line[14].State =
+                line[15].State =
+                Cell.CellState.Filled;
+
+            Cell.CellState[] expectedStates = new Cell.CellState[20] {
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Blank,
+                Cell.CellState.Blank,
+
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+
+                Cell.CellState.Blank,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Blank
+            };
+
+            var expectedFlags = new int[20] {
+                0,
+                0,
+                0,
+                1,
+                2,
+
+                3,
+                2,
+                2,
+                2,
+                4,
+            
+                5,
+                6,
+                3,
+                3,
+                3,
+
+                3,
+                7,
+                4,
+                4,
+                8
+            };
+
+            var min = line.Min();
+
+            Assert.IsNotNull(min);
+
+            for (int i = 0; i < 5; ++i)
+            {
+                Assert.AreEqual(expectedStates[i], min[i].State);
+                Assert.AreEqual(expectedFlags[i], min[i].Flag);
+            }
+        }
+
+        [TestMethod]
         public void CellLineMaxFunctionsWithAllUnknownCells_5_1_1()
         {
             Nonogram n = new Nonogram(5, 1);

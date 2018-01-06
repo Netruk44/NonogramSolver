@@ -446,5 +446,58 @@ namespace NonogramSolverTests
                 Assert.AreEqual(expected[i], line[i].State);
             }
         }
+
+        [TestMethod]
+        public void OverlapTechniqueFindsSolutionForGreedyPitfall()
+        {
+            // Hint: 2 3 4 2
+            // Given:    ???????XX???XXXX????
+            // Expected: ???????XX??_XXXX_?X?
+            const int width = 20;
+            var n = new Nonogram(width, 1);
+            var line = n.Row(0);
+            line.Hints.AddRange(new int[] { 2, 3, 4, 2 });
+            line[7].State =
+                line[8].State =
+                line[12].State =
+                line[13].State =
+                line[14].State =
+                line[15].State =
+                Cell.CellState.Filled;
+
+            Cell.CellState[] expected = new Cell.CellState[width] {
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+
+                Cell.CellState.Unknown,
+                Cell.CellState.Unknown,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Unknown,
+
+                Cell.CellState.Unknown,
+                Cell.CellState.Blank,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+                Cell.CellState.Filled,
+
+                Cell.CellState.Filled,
+                Cell.CellState.Blank,
+                Cell.CellState.Unknown,
+                Cell.CellState.Filled,
+                Cell.CellState.Unknown
+            };
+
+            var t = new OverlapTechnique();
+            t.Apply(line);
+
+            for (int i = 0; i < width; ++i)
+            {
+                Assert.AreEqual(expected[i], line[i].State);
+            }
+        }
     }
 }
